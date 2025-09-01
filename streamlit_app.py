@@ -1,30 +1,17 @@
 import streamlit as st
-import plotly.graph_objects as go
+import matplotlib.pyplot as plt
 
-st.title("点の操作（スライダーで移動）")
+st.title("点の操作（スライダーで）")
 
-# スライダーで座標入力
-x = st.slider("X 座標", -10.0, 10.0, 0.0, step=0.1)
-y = st.slider("Y 座標", -10.0, 10.0, 0.0, step=0.1)
+# 点の座標をスライダーで調整
+x = st.slider("X 座標", -10.0, 10.0, 0.0, 0.1)
+y = st.slider("Y 座標", -10.0, 10.0, 0.0, 0.1)
 
-# 点を描画するPlotlyグラフ
-fig = go.Figure()
-fig.add_trace(go.Scatter(
-    x=[x],
-    y=[y],
-    mode='markers',
-    marker=dict(size=10, color='red')
-))
+# グラフ描画
+fig, ax = plt.subplots()
+ax.plot(x, y, 'ro')  # 赤い点
+ax.set_xlim(-10, 10)
+ax.set_ylim(-10, 10)
+ax.grid(True)
 
-# 軸の範囲とスタイル
-fig.update_layout(
-    xaxis=dict(range=[-10, 10]),
-    yaxis=dict(range=[-10, 10]),
-    width=500,
-    height=500,
-    title="スライダーで点を移動",
-    showlegend=False
-)
-
-# グラフ表示
-st.plotly_chart(fig)
+st.pyplot(fig)

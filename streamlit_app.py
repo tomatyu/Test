@@ -1,50 +1,46 @@
 import streamlit as st
-import time
+import streamlit.components.v1 as components
 
-# 初期位置をセッション状態に保存
-if 'x' not in st.session_state:
-    st.session_state.x = 200
-if 'y' not in st.session_state:
-    st.session_state.y = 200
-if 'step' not in st.session_state:
-    st.session_state.step = 10
+# JavaScriptでマウス座標を取得し、Streamlitに送るHTML+JSコード
+component_code = """
+<div id="canvas-container" style="position:relative; width: 400px; height: 400px; border:1px solid black;">
+  <canvas id="canvas" width="400" height="400" style="background-color: white;"></canvas>
+</div>
 
-# レイアウト
-st.title("🔴 AWSDキーで点を動かす（Streamlitのみ）")
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
 
-# キー入力の代わりにボタンで操作
-col1, col2, col3 = st.columns([1, 1, 1])
-with col2:
-    if st.button("W（↑）"):
-        st.session_state.y -= st.session_state.step
+function drawCircle(x, y) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.beginPath();
+    ctx.arc(x, y, 10, 0, 2 * Math.PI);
+    ctx.fillStyle = 'red';
+    ctx.fill();
+}
 
-col1, col2, col3 = st.columns([1, 1, 1])
-with col1:
-    if st.button("A（←）"):
-        st.session_state.x -= st.session_state.step
-with col3:
-    if st.button("D（→）"):
-        st.session_state.x += st.session_state.step
+window.addEventListener('mousemove', (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    
+    if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+        drawCircle(x, y);
+        // Streamlitに座標を送る
+        window.parent.postMessage({x: x, y: y}, '*');
+    }
+});
+</script>
+"""
 
-col1, col2, col3 = st.columns([1, 1, 1])
-with col2:
-    if st.button("S（↓）"):
-        st.session_state.y += st.session_state.step
+# Streamlit側でJavaScriptからのメッセージを受け取るためのiframe埋め込み
+# 受け取った座標はsession_stateに保存して画面に表示
+coords = st.empty()
 
-# キャンバスの描画（matplotlib）
-import matplotlib.pyplot as plt
+components.html(component_code, height=420)
 
-fig, ax = plt.subplots(figsize=(4, 4))
-ax.set_xlim(0, 400)
-ax.set_ylim(0, 400)
-ax.set_xticks([])
-ax.set_yticks([])
-ax.invert_yaxis()  # 上下逆にしてゲームっぽく
+# JavaScriptのpostMessageを受け取るには、Streamlit側では
+# 残念ながら直接的なリスナーが標準では用意されていません。
+# そこで、代替としてst_js_on_eventなどのサードパーティコンポーネントを使う方法もあります。
 
-# 点の描画
-ax.plot(st.session_state.x, st.session_state.y, 'ro', markersize=10)
-
-st.pyplot(fig)
-
-# 座標表示
-st.markdown(f"**現在の位置:** x = {st.session_state.x}, y = {st.session_state.y}")
+st.write("※ こちらのサンプルはマウスの動きに合わせてCanvas内で赤い点が動きます。")

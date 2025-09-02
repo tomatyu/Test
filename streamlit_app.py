@@ -1,46 +1,50 @@
 import streamlit as st
-import matplotlib.pyplot as plt
+import time
 
-st.title("点の操作（方向ボタンで移動）")
+# 初期位置をセッション状態に保存
+if 'x' not in st.session_state:
+    st.session_state.x = 200
+if 'y' not in st.session_state:
+    st.session_state.y = 200
+if 'step' not in st.session_state:
+    st.session_state.step = 10
 
-# セッション状態の初期化
-if "x" not in st.session_state:
-    st.session_state.x = 0.0
-if "y" not in st.session_state:
-    st.session_state.y = 0.0
+# レイアウト
+st.title("🔴 AWSDキーで点を動かす（Streamlitのみ）")
 
-# 移動量
-step = 0.1
-
-# 操作ボタンの表示
+# キー入力の代わりにボタンで操作
 col1, col2, col3 = st.columns([1, 1, 1])
 with col2:
-    if st.button("⬆️ 上"):
-        st.session_state.y += step
+    if st.button("W（↑）"):
+        st.session_state.y -= st.session_state.step
 
 col1, col2, col3 = st.columns([1, 1, 1])
 with col1:
-    if st.button("⬅️ 左"):
-        st.session_state.x -= step
-with col2:
-    st.write("位置調整")
+    if st.button("A（←）"):
+        st.session_state.x -= st.session_state.step
 with col3:
-    if st.button("➡️ 右"):
-        st.session_state.x += step
+    if st.button("D（→）"):
+        st.session_state.x += st.session_state.step
 
 col1, col2, col3 = st.columns([1, 1, 1])
 with col2:
-    if st.button("⬇️ 下"):
-        st.session_state.y -= step
+    if st.button("S（↓）"):
+        st.session_state.y += st.session_state.step
 
-# グラフ描画
-fig, ax = plt.subplots()
-ax.plot(st.session_state.x, st.session_state.y, 'ro')
-ax.set_xlim(-10, 10)
-ax.set_ylim(-10, 10)
-ax.grid(True)
+# キャンバスの描画（matplotlib）
+import matplotlib.pyplot as plt
+
+fig, ax = plt.subplots(figsize=(4, 4))
+ax.set_xlim(0, 400)
+ax.set_ylim(0, 400)
+ax.set_xticks([])
+ax.set_yticks([])
+ax.invert_yaxis()  # 上下逆にしてゲームっぽく
+
+# 点の描画
+ax.plot(st.session_state.x, st.session_state.y, 'ro', markersize=10)
 
 st.pyplot(fig)
 
-# 座標の表示
-st.write(f"現在の座標: (x={st.session_state.x:.1f}, y={st.session_state.y:.1f})")
+# 座標表示
+st.markdown(f"**現在の位置:** x = {st.session_state.x}, y = {st.session_state.y}")
